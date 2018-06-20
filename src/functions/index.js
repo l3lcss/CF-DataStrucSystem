@@ -1,7 +1,9 @@
 import * as functions from 'firebase-functions'
 import admin from 'firebase-admin'
-const cors = require('cors')({origin: true})
-
+const express = require('express');
+const CORS = require('cors')({origin: true})
+const app = express()
+app.use(CORS)
 admin.initializeApp({
     credential: admin.credential.applicationDefault() 
 })
@@ -14,7 +16,7 @@ const state = {
 
 const db = admin.firestore()
 
-export const getDiscount = functions.https.onRequest(async (req, res) => {
+app.get('/getDiscount', async (req, res) => {
   const promoCode = req.query.promoCode
   let raw = {
     promoCode
@@ -35,7 +37,7 @@ export const getDiscount = functions.https.onRequest(async (req, res) => {
   }
 })
 
-export const checkOut = functions.https.onRequest(async (req, res) => {
+app.get('/checkOut', async (req, res) => {
   let {tel, net, promoCode} = req.query
   let raw = {
     tel,
@@ -175,3 +177,8 @@ function setLog (raw, state, result) {
     raw: raw
   })
 }
+
+// app.use(getDiscount)
+// app.use(checkOut)
+
+exports.app = functions.https.onRequest(app)
