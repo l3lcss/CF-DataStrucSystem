@@ -37,8 +37,6 @@ export const getDiscount = functions.https.onRequest(async (req, res) => {
 
 export const checkOut = functions.https.onRequest(async (req, res) => {
   let {tel, net, promoCode} = req.query
-  net = '3000'
-  tel = '0855662312'
   let raw = {
     tel,
     net,
