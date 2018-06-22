@@ -104,6 +104,29 @@ app.get('/createPromoCode', async (req, res) => {
   }
 })
 
+app.get('/createVIPAccount', async (req, res) => {
+  const {name, age, tel, gender, email} = req.query
+
+  if(await checkVIP(tel)) {
+    res.status(400).send({
+      message: 'Tel VIP are exists',
+      data: {
+        status: 400
+      }
+    })
+    return
+  }
+  else {
+    setNewDocumentVIP(name, age, tel, gender, email)
+    res.status(200).send({
+      message: 'create VIP tel completed',
+      data: {
+        status: 200
+      }
+    })
+  }
+})
+
 function getNetDiscount (net, discountType, discountNumber) { 
   const discountNumberInt = parseInt(discountNumber)
   if (discountType === 'amount') {
@@ -178,6 +201,19 @@ async function setNewDocumentPromoCode (generatedCode, discount_type, discount_n
   await db.collection('promoCode').doc(generatedCode).set(newCode)
 }
 
+async function setNewDocumentVIP (name, age, tel, gender, email) {
+  let createDate = new Date()
+  const newVIP = {
+    age,
+    createDate,
+    email,
+    gender,
+    name,
+    spending: 0
+  }
+  await db.collection('vip').doc(tel).set(newVIP)
+}
+
 async function genCode() { // check Code
   let code
   const message = 'ABCDEFGHJKLMNPQRSTUVWXYZ0123456789'
@@ -198,6 +234,11 @@ function randomPromoCode (message) {
 async function checkCode (code) {
   const hasPromocode = await db.collection('promoCode').doc(code).get()
   return hasPromocode.exists
+}
+
+async function checkVIP (tel) {
+  const hasVIP = await db.collection('vip').doc(tel).get()
+  return hasVIP.exists
 }
 
 function setLog (raw, state, result) {
