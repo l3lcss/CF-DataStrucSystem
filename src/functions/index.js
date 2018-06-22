@@ -7,7 +7,7 @@ app.use(CORS)
 admin.initializeApp({
     credential: admin.credential.applicationDefault() 
 })
-const state = {
+const state = {     
   GEN_CODE: 'GEN_CODE',
   FIND_CODE: 'FIND_CODE',
   USE_CODE: 'USE_CODE',
@@ -80,6 +80,30 @@ app.get('/checkOut', async (req, res) => {
   res.send(result)
 })
 
+
+app.get('/createPromoCode', async (req, res) => {
+  const {promoCode, discountType, discountNumber, type, expDate} = req.query
+
+  if(await checkCode(promoCode)) {
+    res.status(400).send({
+      message: 'Promotion Code are exists',
+      data: {
+        status: 400
+      }
+    })
+    return
+  }
+  else {
+    setNewDocumentPromoCode(promoCode, discountType, discountNumber, type, expDate)
+    res.status(200).send({
+      message: 'create promotion code completed',
+      data: {
+        status: 200
+      }
+    })
+  }
+})
+
 function getNetDiscount (net, discountType, discountNumber) { 
   const discountNumberInt = parseInt(discountNumber)
   if (discountType === 'amount') {
@@ -114,14 +138,17 @@ async function getNewPromoCode (tel, net) {
     tel,
     net
   }
+  let discount_number = '300'
+  let discount_type = 'amount'
+  let type = 'onetime'
   const vip = await db.collection('vip').doc(tel).get()
   if (vip.exists && net >= 3000) {
-    let generatedCode = genCode()
+    let generatedCode = await genCode()
     const promotionDocument = await db.runTransaction(transaction => {
       return transaction.get(db.collection('promoCode').doc(generatedCode))
         .then (async totalPromotionCode => {
           if (!totalPromotionCode.exists) {
-            setNewDocumentPromoCode (generatedCode)
+            setNewDocumentPromoCode (generatedCode, discount_number, discount_type, type)
             setLog(raw, state.GEN_CODE, { newGenerateCode : generatedCode, netDiscount : net})
           }
       })
@@ -133,26 +160,30 @@ async function getNewPromoCode (tel, net) {
   }
 }
 
-async function setNewDocumentPromoCode (generatedCode) {
+async function setNewDocumentPromoCode (generatedCode, discount_type, discount_number, type, expDate) {
   let createDate = new Date()
-  let expDate = new Date(createDate.getFullYear(), createDate.getMonth()+3, createDate.getDate(), createDate.getHours(), createDate.getMinutes(), createDate.getSeconds())
+  if ( expDate ===  undefined ) {
+    expDate = new Date(createDate.getFullYear(), createDate.getMonth()+3, createDate.getDate(), createDate.getHours(), createDate.getMinutes(), createDate.getSeconds())
+  } else {
+    expDate = new Date(expDate.substring(0, 4), parseInt(expDate.substring(5, 7), 10)-1, parseInt(expDate.substring(8, 10), 10)+1)
+  }
   const newCode = {
     create_date: createDate,
-    discount_number: '300',
-    discount_type: 'amount',
+    discount_number,
+    discount_type,
     exp_date: expDate,
     status: 'unused',
-    type: 'onetime'
+    type
   }
   await db.collection('promoCode').doc(generatedCode).set(newCode)
 }
 
-function genCode() { // check Code
+async function genCode() { // check Code
   let code
   const message = 'ABCDEFGHJKLMNPQRSTUVWXYZ0123456789'
   do {
     code = randomPromoCode (message)//AA
-  } while (checkCode(code))
+  } while (await checkCode(code))
   return code
 } 
 
@@ -164,8 +195,8 @@ function randomPromoCode (message) {
   return code
 }
 
-function checkCode (code) {
-  const hasPromocode = db.collection('promoCode').doc(code).get()
+async function checkCode (code) {
+  const hasPromocode = await db.collection('promoCode').doc(code).get()
   return hasPromocode.exists
 }
 
