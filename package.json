@@ -30,6 +30,7 @@
     "funcs:shell": "yarn firebase experimental:functions:shell"
   },
   "dependencies": {
+    "@google-cloud/firestore": "^0.14.1",
     "cors": "^2.8.4",
     "express": "^4.16.3",
     "firebase-admin": "^5.12.1",

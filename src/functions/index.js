@@ -1,6 +1,7 @@
 import * as functions from 'firebase-functions'
 import admin from 'firebase-admin'
-const express = require('express');
+import { QuerySnapshot } from '@google-cloud/firestore'
+const express = require('express')
 const CORS = require('cors')({origin: true})
 const app = express()
 app.use(CORS)
@@ -125,6 +126,25 @@ app.get('/createVIPAccount', async (req, res) => {
       }
     })
   }
+})
+
+app.get('/getAllPromoCode', async (req, res) => {
+  let promCode = []
+  let promoCodeList = await db.collection('promoCode').get().then( QuerySnapshot => {
+    QuerySnapshot.forEach( async doc => {
+      await promCode.push({
+        promoCode: doc.id,
+        ...doc.data()
+      })
+    })
+  })
+  res.status(200).send({
+    message: 'send promoCode complete',
+    data: {
+      status: 200,
+      promCode
+    }
+  })
 })
 
 function getNetDiscount (net, discountType, discountNumber) { 
