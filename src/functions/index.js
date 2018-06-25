@@ -129,10 +129,10 @@ app.get('/createVIPAccount', async (req, res) => {
 })
 
 app.get('/getAllPromoCode', async (req, res) => {
-  let promCode = []
+  let promoCode = []
   let promoCodeList = await db.collection('promoCode').get().then( QuerySnapshot => {
     QuerySnapshot.forEach( async doc => {
-      await promCode.push({
+      await promoCode.push({
         promoCode: doc.id,
         ...doc.data()
       })
@@ -142,7 +142,7 @@ app.get('/getAllPromoCode', async (req, res) => {
     message: 'send promoCode complete',
     data: {
       status: 200,
-      promCode
+      promoCode
     }
   })
 })
@@ -163,6 +163,29 @@ app.get('/getAllVIP', async (req, res) => {
       status: 200,
       vip
     }
+  })
+})
+
+app.get('/removePromoCode', (req, res) => {
+  let promoCode = req.query.promoCode
+
+  db.collection('promoCode').doc(promoCode).delete().then( () => {
+    console.log('Document successfully deleted!')
+    res.status(200).send({
+      message: 'Document successfully deleted!',
+      data: {
+        promoCode,
+        status: 200
+      }
+    })
+  }).catch( (error) => {
+      res.status(400).send({
+        message: 'Error removing document: ', error,
+        data: {
+          promoCode,
+          status: 400
+        }
+      })
   })
 })
 
@@ -241,10 +264,10 @@ async function setNewDocumentPromoCode (generatedCode, discount_type, discount_n
 }
 
 async function setNewDocumentVIP (name, age, tel, gender, email) {
-  let createDate = new Date()
+  let create_date = new Date()
   const newVIP = {
     age,
-    createDate,
+    create_date,
     email,
     gender,
     name,
@@ -253,11 +276,11 @@ async function setNewDocumentVIP (name, age, tel, gender, email) {
   await db.collection('vip').doc(tel).set(newVIP)
 }
 
-async function genCode() { // check Code
+async function genCode() { 
   let code
   const message = 'ABCDEFGHJKLMNPQRSTUVWXYZ0123456789'
   do {
-    code = randomPromoCode (message)//AA
+    code = randomPromoCode (message)
   } while (await checkCode(code))
   return code
 } 
@@ -288,8 +311,5 @@ function setLog (raw, state, result) {
     raw: raw
   })
 }
-
-// app.use(getDiscount)
-// app.use(checkOut)
 
 exports.app = functions.https.onRequest(app)
