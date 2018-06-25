@@ -147,6 +147,25 @@ app.get('/getAllPromoCode', async (req, res) => {
   })
 })
 
+app.get('/getAllVIP', async (req, res) => {
+  let vip = []
+  let vipList = await db.collection('vip').get().then( QuerySnapshot => {
+    QuerySnapshot.forEach( async doc => {
+      await vip.push({
+        tel: doc.id,
+        ...doc.data()
+      })
+    })
+  })
+  res.status(200).send({
+    message: 'send VIP complete',
+    data: {
+      status: 200,
+      vip
+    }
+  })
+})
+
 function getNetDiscount (net, discountType, discountNumber) { 
   const discountNumberInt = parseInt(discountNumber)
   if (discountType === 'amount') {
@@ -191,7 +210,7 @@ async function getNewPromoCode (tel, net) {
       return transaction.get(db.collection('promoCode').doc(generatedCode))
         .then (async totalPromotionCode => {
           if (!totalPromotionCode.exists) {
-            setNewDocumentPromoCode (generatedCode, discount_number, discount_type, type)
+            setNewDocumentPromoCode (generatedCode, discount_type, discount_number, type)
             setLog(raw, state.GEN_CODE, { newGenerateCode : generatedCode, netDiscount : net})
           }
       })
