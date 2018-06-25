@@ -170,7 +170,6 @@ app.get('/removePromoCode', (req, res) => {
   let promoCode = req.query.promoCode
 
   db.collection('promoCode').doc(promoCode).delete().then( () => {
-    console.log('Document successfully deleted!')
     res.status(200).send({
       message: 'Document successfully deleted!',
       data: {
@@ -183,6 +182,28 @@ app.get('/removePromoCode', (req, res) => {
         message: 'Error removing document: ', error,
         data: {
           promoCode,
+          status: 400
+        }
+      })
+  })
+})
+
+app.get('/removeVIP', (req, res) => {
+  let tel = req.query.tel
+
+  db.collection('vip').doc(tel).delete().then( () => {
+    res.status(200).send({
+      message: 'Document successfully deleted!',
+      data: {
+        tel,
+        status: 200
+      }
+    })
+  }).catch( (error) => {
+      res.status(400).send({
+        message: 'Error removing document: ', error,
+        data: {
+          tel,
           status: 400
         }
       })
