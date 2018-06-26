@@ -16,168 +16,207 @@ const state = {
 }
 
 const db = admin.firestore()
+const checkKey = '4784d051-dce8-4918-a0b1-9b429a23f8d6'
 
 app.get('/getDiscount', async (req, res) => {
   const promoCode = req.query.promoCode
+  const key = req.query.key
   let raw = {
-    promoCode
+    promoCode,
+    key
   }
-  const promotionDetails = await db.collection('promoCode').doc(promoCode).get()
-  if (promotionDetails.exists) {
-    let promotionData = promotionDetails.data()
-    setLog(raw, state.FIND_CODE, promotionData)
-    res.send({
-      ...promotionData,
-      promoCode
-    })
+  if (checkKey === key) {
+    const promotionDetails = await db.collection('promoCode').doc(promoCode).get()
+    if (promotionDetails.exists) {
+      let promotionData = promotionDetails.data()
+      setLog(raw, state.FIND_CODE, promotionData)
+      res.send({
+        ...promotionData,
+        promoCode
+      })
+    } else {
+      setLog(raw, state.FIND_CODE, null)
+      res.status(200).send({
+        message: 'promotionCode not found'
+      })
+    }
   } else {
-    setLog(raw, state.FIND_CODE, null)
     res.status(200).send({
-      message: 'promotionCode not found'
+      message: 'not authentication'
     })
   }
 })
 
 app.get('/checkOut', async (req, res) => {
-  let {tel, net, promoCode} = req.query
+  let {tel, net, promoCode, key} = req.query
   let raw = {
     tel,
     net,
-    promoCode
+    promoCode,
+    key
   }
-
-  if (!validateDataInput(tel, net)) {
-    res.status(400).send({
-      message: 'tel and net should be numeric',
-      data: {
-        status: 400
-      }
-    })
-    return
-  }
-  if (promoCode) {
-    const promotion = await db.runTransaction(transaction => {
-      return transaction.get(db.collection('promoCode').doc(promoCode))
-      .then (async selectedPromotion => {
-        if (selectedPromotion.exists && selectedPromotion.data().status === 'unused' && (selectedPromotion.data().exp_date > new Date())) {
-          setStatusPromoCode(selectedPromotion.data().type, promoCode)
-          net = await getNetDiscount ( 
-            net,
-            selectedPromotion.data().discount_type,
-            selectedPromotion.data().discount_number
-          )
-          setLog(raw, state.USE_CODE, net)
-        } else {
-          setLog(raw, state.USE_CODE, net)
+  if (checkKey === key) {
+    if (!validateDataInput(tel, net)) {
+      res.status(400).send({
+        message: 'tel and net should be numeric',
+        data: {
+          status: 400
         }
       })
-    }).then(() => {
-      console.log('Transaction used code success')
-    }).catch(err => {
-      console.error(err)
+      return
+    }
+    if (promoCode) {
+      const promotion = await db.runTransaction(transaction => {
+        return transaction.get(db.collection('promoCode').doc(promoCode))
+        .then (async selectedPromotion => {
+          if (selectedPromotion.exists && selectedPromotion.data().status === 'unused' && (selectedPromotion.data().exp_date > new Date())) {
+            setStatusPromoCode(selectedPromotion.data().type, promoCode)
+            net = await getNetDiscount ( 
+              net,
+              selectedPromotion.data().discount_type,
+              selectedPromotion.data().discount_number
+            )
+            setLog(raw, state.USE_CODE, net)
+          } else {
+            setLog(raw, state.USE_CODE, net)
+          }
+        })
+      }).then(() => {
+        console.log('Transaction used code success')
+      }).catch(err => {
+        console.error(err)
+      })
+    }
+    const result = await getNewPromoCode(tel, net)
+    res.send(result)
+  } else {
+    res.status(200).send({
+      message: 'not authentication'
     })
   }
-  const result = await getNewPromoCode(tel, net)
-  res.send(result)
 })
 
-
 app.get('/createPromoCode', async (req, res) => {
-  const {promoCode, discountType, discountNumber, type, expDate} = req.query
-
-  if(await checkCode(promoCode)) {
-    res.status(400).send({
-      message: 'Promotion Code are exists',
-      data: {
-        status: 400
-      }
-    })
-    return
-  }
-  else {
-    setNewDocumentPromoCode(promoCode, discountType, discountNumber, type, expDate)
+  const {promoCode, discountType, discountNumber, type, expDate, key} = req.query
+  if (checkKey === key) {
+    if(await checkCode(promoCode)) {
+      res.status(400).send({
+        message: 'Promotion Code are exists',
+        data: {
+          status: 400
+        }
+      })
+      return
+    }
+    else {
+      setNewDocumentPromoCode(promoCode, discountType, discountNumber, type, expDate)
+      res.status(200).send({
+        message: 'create promotion code completed',
+        data: {
+          status: 200
+        }
+      })
+    }
+  } else {
     res.status(200).send({
-      message: 'create promotion code completed',
-      data: {
-        status: 200
-      }
+      message: 'not authentication'
     })
   }
 })
 
 app.get('/createVIPAccount', async (req, res) => {
-  const {name, age, tel, gender, email} = req.query
-
-  if(await checkVIP(tel)) {
-    res.status(400).send({
-      message: 'Tel VIP are exists',
-      data: {
-        status: 400
-      }
-    })
-    return
-  }
-  else {
-    setNewDocumentVIP(name, age, tel, gender, email)
+  const {name, age, tel, gender, email, key} = req.query
+  if (checkKey === key) {
+    if(await checkVIP(tel)) {
+      res.status(400).send({
+        message: 'Tel VIP are exists',
+        data: {
+          status: 400
+        }
+      })
+      return
+    }
+    else {
+      setNewDocumentVIP(name, age, tel, gender, email)
+      res.status(200).send({
+        message: 'create VIP tel completed',
+        data: {
+          status: 200
+        }
+      })
+    }
+  } else {
     res.status(200).send({
-      message: 'create VIP tel completed',
-      data: {
-        status: 200
-      }
+      message: 'not authentication'
     })
   }
 })
 
 app.get('/getAllPromoCode', async (req, res) => {
-  let promoCode = []
-  let promoCodeList = await db.collection('promoCode').get().then( QuerySnapshot => {
-    QuerySnapshot.forEach( async doc => {
-      await promoCode.push({
-        promoCode: doc.id,
-        ...doc.data()
+  const key = req.query.key
+  if (checkKey === key) {
+    let promoCode = []
+    let promoCodeList = await db.collection('promoCode').get().then( QuerySnapshot => {
+      QuerySnapshot.forEach( async doc => {
+        await promoCode.push({
+          promoCode: doc.id,
+          ...doc.data()
+        })
       })
     })
-  })
-  res.status(200).send({
-    message: 'send promoCode complete',
-    data: {
-      status: 200,
-      promoCode
-    }
-  })
+    res.status(200).send({
+      message: 'send promoCode complete',
+      data: {
+        status: 200,
+        promoCode
+      }
+    })
+  } else {
+    res.status(200).send({
+      message: 'not authentication'
+    })
+  }
 })
 
 app.get('/getAllVIP', async (req, res) => {
-  let vip = []
-  let vipList = await db.collection('vip').get().then( QuerySnapshot => {
-    QuerySnapshot.forEach( async doc => {
-      await vip.push({
-        tel: doc.id,
-        ...doc.data()
+  const key = req.query.key
+  if (checkKey === key) {
+    let vip = []
+    let vipList = await db.collection('vip').get().then( QuerySnapshot => {
+      QuerySnapshot.forEach( async doc => {
+        await vip.push({
+          tel: doc.id,
+          ...doc.data()
+        })
       })
     })
-  })
-  res.status(200).send({
-    message: 'send VIP complete',
-    data: {
-      status: 200,
-      vip
-    }
-  })
+    res.status(200).send({
+      message: 'send VIP complete',
+      data: {
+        status: 200,
+        vip
+      }
+    })
+  } else {
+    res.status(200).send({
+      message: 'not authentication'
+    })
+  }
 })
 
 app.get('/removePromoCode', (req, res) => {
   let promoCode = req.query.promoCode
-
-  db.collection('promoCode').doc(promoCode).delete().then( () => {
-    res.status(200).send({
-      message: 'Document successfully deleted!',
-      data: {
-        promoCode,
-        status: 200
-      }
-    })
-  }).catch( (error) => {
+  const key = req.query.key
+  if (checkKey === key) {
+    db.collection('promoCode').doc(promoCode).delete().then( () => {
+      res.status(200).send({
+        message: 'Document successfully deleted!',
+        data: {
+          promoCode,
+          status: 200
+        }
+      })
+    }).catch( (error) => {
       res.status(400).send({
         message: 'Error removing document: ', error,
         data: {
@@ -185,21 +224,27 @@ app.get('/removePromoCode', (req, res) => {
           status: 400
         }
       })
-  })
+    })
+  } else {
+    res.status(200).send({
+      message: 'not authentication'
+    })
+  }
 })
 
 app.get('/removeVIP', (req, res) => {
   let tel = req.query.tel
-
-  db.collection('vip').doc(tel).delete().then( () => {
-    res.status(200).send({
-      message: 'Document successfully deleted!',
-      data: {
-        tel,
-        status: 200
-      }
-    })
-  }).catch( (error) => {
+  const key = req.query.key
+  if (checkKey === key) {
+    db.collection('vip').doc(tel).delete().then( () => {
+      res.status(200).send({
+        message: 'Document successfully deleted!',
+        data: {
+          tel,
+          status: 200
+        }
+      })
+    }).catch( (error) => {
       res.status(400).send({
         message: 'Error removing document: ', error,
         data: {
@@ -207,7 +252,12 @@ app.get('/removeVIP', (req, res) => {
           status: 400
         }
       })
-  })
+    })
+  } else {
+    res.status(200).send({
+      message: 'not authentication'
+    })
+  }
 })
 
 function getNetDiscount (net, discountType, discountNumber) { 
