@@ -50,13 +50,13 @@ app.get('/getDiscount', async (req, res) => {
 app.get('/checkOut', async (req, res) => {
   let {tel, net, promoCode, key} = req.query
   let raw = {
-    tel,
+    tel: tel ? tel:'undefind',
     net,
     promoCode,
     key
   }
   if (checkKey === key) {
-    if (!validateDataInput(tel, net)) {
+    if (!validateDataInput(net)) {
       res.status(400).send({
         message: 'tel and net should be numeric',
         data: {
@@ -87,7 +87,12 @@ app.get('/checkOut', async (req, res) => {
         console.error(err)
       })
     }
-    const result = await getNewPromoCode(tel, net)
+    let result = {}
+    if(tel) {
+      result = await getNewPromoCode(tel, net)
+    } else {
+      result = {netDiscount: net}
+    }
     res.send(result)
   } else {
     res.status(200).send({
@@ -273,12 +278,8 @@ function getNetDiscount (net, discountType, discountNumber) {
   return net.toString()
 }
 
-function validateDataInput (tel, net) {
-  if (!((tel) && (net)) || !(/^\d+$/.test(net))) {
-    return false
-  } else {
-    return true
-  }
+function validateDataInput (net) {
+  return (/^\d+$/.test(net))
 }
 
 function setStatusPromoCode (type, promoCode) {
