@@ -12,7 +12,9 @@ const state = {
   GEN_CODE: 'GEN_CODE',
   FIND_CODE: 'FIND_CODE',
   USE_CODE: 'USE_CODE',
-  VALIDATE_DATA: 'VALIDATE_DATA'
+  VALIDATE_DATA: 'VALIDATE_DATA',
+  CREATE_PROMOCODE: 'CREATE_PROMOCODE',
+  CREATE_VIP: 'CREATE_VIP'
 }
 
 const db = admin.firestore()
@@ -42,7 +44,10 @@ app.get('/getDiscount', async (req, res) => {
     }
   } else {
     res.status(200).send({
-      message: 'not authentication'
+      message: 'not authentication',
+      data: {
+        status: 200
+      }
     })
   }
 })
@@ -58,7 +63,7 @@ app.get('/checkOut', async (req, res) => {
   if (checkKey === key) {
     if (!validateDataInput(net)) {
       res.status(400).send({
-        message: 'tel and net should be numeric',
+        message: 'net should be numeric',
         data: {
           status: 400
         }
@@ -96,65 +101,98 @@ app.get('/checkOut', async (req, res) => {
     res.send(result)
   } else {
     res.status(200).send({
-      message: 'not authentication'
+      message: 'not authentication',
+      data: {
+        status: 200
+      }
     })
   }
 })
 
 app.get('/createPromoCode', async (req, res) => {
   const {promoCode, discountType, discountNumber, type, expDate, key} = req.query
+  let raw = {
+    promoCode,
+    discountType,
+    discountNumber,
+    type,
+    expDate
+  }
+  let result = {}
   if (checkKey === key) {
     if(await checkCode(promoCode)) {
-      res.status(400).send({
+      result = {
         message: 'Promotion Code are exists',
         data: {
           status: 400
         }
-      })
+      }
+      res.status(400).send(result)
       return
     }
     else {
       setNewDocumentPromoCode(promoCode, discountType, discountNumber, type, expDate)
-      res.status(200).send({
+      result = {
         message: 'create promotion code completed',
         data: {
           status: 200
         }
-      })
+      }
+      res.status(200).send(result)
     }
   } else {
-    res.status(200).send({
-      message: 'not authentication'
-    })
+    result = {
+      message: 'not authentication',
+      data: {
+        status: 200
+      }
+    }
+    res.status(200).send(result)
   }
+  setLog(raw, state.CREATE_PROMOCODE, result)
 })
 
 app.get('/createVIPAccount', async (req, res) => {
   const {name, age, tel, gender, email, key} = req.query
+  let raw = {
+    name,
+    age,
+    tel,
+    gender,
+    email
+  }
+  let result = {}
   if (checkKey === key) {
     if(await checkVIP(tel)) {
-      res.status(400).send({
+      result = {
         message: 'Tel VIP are exists',
         data: {
           status: 400
         }
-      })
+      }
+      res.status(400).send(result)
       return
     }
     else {
       setNewDocumentVIP(name, age, tel, gender, email)
-      res.status(200).send({
+      result = {
         message: 'create VIP tel completed',
         data: {
           status: 200
         }
-      })
+      }
+      res.status(200).send(result)
     }
   } else {
-    res.status(200).send({
-      message: 'not authentication'
-    })
+    result = {
+      message: 'not authentication',
+      data: {
+        status: 200
+      }
+    }
+    res.status(200).send(result)
   }
+  setLog(raw, state.CREATE_VIP, result)
 })
 
 app.get('/getAllPromoCode', async (req, res) => {
@@ -178,7 +216,10 @@ app.get('/getAllPromoCode', async (req, res) => {
     })
   } else {
     res.status(200).send({
-      message: 'not authentication'
+      message: 'not authentication',
+      data: {
+        status: 200
+      }
     })
   }
 })
@@ -204,7 +245,10 @@ app.get('/getAllVIP', async (req, res) => {
     })
   } else {
     res.status(200).send({
-      message: 'not authentication'
+      message: 'not authentication',
+      data: {
+        status: 200
+      }
     })
   }
 })
@@ -232,7 +276,10 @@ app.get('/removePromoCode', (req, res) => {
     })
   } else {
     res.status(200).send({
-      message: 'not authentication'
+      message: 'not authentication',
+      data: {
+        status: 200
+      }
     })
   }
 })
@@ -260,7 +307,10 @@ app.get('/removeVIP', (req, res) => {
     })
   } else {
     res.status(200).send({
-      message: 'not authentication'
+      message: 'not authentication',
+      data: {
+        status: 200
+      }
     })
   }
 })
