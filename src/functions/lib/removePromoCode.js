@@ -6,18 +6,10 @@ const removePromoCode = (req, res) => {
   if (checkKey === key) {
     db.collection('promoCode').doc(promoCode).delete().then( () => {
       res.status(200).send({
-        message: 'Document successfully deleted!',
+        message: 'success!',
         data: {
           promoCode,
           status: 200
-        }
-      })
-    }).catch( (error) => {
-      res.status(400).send({
-        message: 'Error removing document: ', error,
-        data: {
-          promoCode,
-          status: 400
         }
       })
     })

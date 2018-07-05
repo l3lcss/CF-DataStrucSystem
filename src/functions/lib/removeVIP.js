@@ -6,18 +6,10 @@ const removeVIP = (req, res) => {
   if (checkKey === key) {
     db.collection('vip').doc(tel).delete().then( () => {
       res.status(200).send({
-        message: 'Document successfully deleted!',
+        message: 'success!',
         data: {
           tel,
           status: 200
-        }
-      })
-    }).catch( (error) => {
-      res.status(400).send({
-        message: 'Error removing document: ', error,
-        data: {
-          tel,
-          status: 400
         }
       })
     })
