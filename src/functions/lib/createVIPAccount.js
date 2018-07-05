@@ -2,10 +2,10 @@ import { checkKey, state } from '../constances'
 import { setLog, checkVIP, setNewDocumentVIP } from './functionAdditional'
 
 const createVIPAccount = async (req, res) => {
-  const {name, age, tel, gender, email, key} = req.query
+  const {name, birth_date, tel, gender, email, key} = req.query
   let raw = {
     name,
-    age,
+    birth_date,
     tel,
     gender,
     email
@@ -23,7 +23,7 @@ const createVIPAccount = async (req, res) => {
       return
     }
     else {
-      setNewDocumentVIP(name, age, tel, gender, email)
+      setNewDocumentVIP(name, birth_date, tel, gender, email)
       result = {
         message: 'create VIP tel completed',
         data: {

@@ -57,16 +57,17 @@ async function setNewDocumentPromoCode (generatedCode, discount_type, discount_n
   await db.collection('promoCode').doc(generatedCode).set(newCode)
 }
 
-async function setNewDocumentVIP (name, age, tel, gender, email) {
+async function setNewDocumentVIP (name, birth_date, tel, gender, email) {
   let create_date = new Date()
   const newVIP = {
-    age,
+    birth_date: new Date(birth_date),
     create_date,
     email,
     gender,
     name,
     spending: 0
   }
+  console.log(newVIP)
   await db.collection('vip').doc(tel).set(newVIP)
 }
 

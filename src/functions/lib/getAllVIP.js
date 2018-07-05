@@ -6,9 +6,11 @@ const getAllVIP = async (req, res) => {
     let vip = []
     let vipList = await db.collection('vip').get().then( QuerySnapshot => {
       QuerySnapshot.forEach( async doc => {
+        let differenceDate = (new Date() - doc.data().birth_date)/(1000*3600*24*365)
         await vip.push({
           tel: doc.id,
-          ...doc.data()
+          ...doc.data(),
+          age: doc.data().age | differenceDate
         })
       })
     })
