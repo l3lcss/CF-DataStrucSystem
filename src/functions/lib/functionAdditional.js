@@ -1,18 +1,5 @@
 import { db, state } from '../constances'
 
-function getNetDiscount (net, discountType, discountNumber) { 
-  const discountNumberInt = parseInt(discountNumber)
-  if (discountType === 'amount') {
-    net = net - discountNumberInt
-  } else if (discountType === 'percent') {
-    net = net - ((net * discountNumberInt) / 100)
-  }
-  if (net < 0) {
-    net = 0
-  }
-  return net.toString()
-}
-
 function validateDataInput (net) {
   return (/^\d+$/.test(net))
 }
@@ -121,7 +108,6 @@ function setLog (raw, state, result) {
 }
 
 module.exports = {
-  getNetDiscount,
   validateDataInput,
   setStatusPromoCode,
   getNewPromoCode,

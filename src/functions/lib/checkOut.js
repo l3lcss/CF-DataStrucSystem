@@ -1,5 +1,5 @@
 import { checkKey, db, state } from '../constances'
-import { validateDataInput, setStatusPromoCode, getNetDiscount, setLog, getNewPromoCode } from './functionAdditional'
+import { validateDataInput, setStatusPromoCode, setLog, getNewPromoCode } from './functionAdditional'
 
 const checkOut = async (req, res) => {
   let {tel, net, promoCode, key} = req.query
@@ -25,11 +25,6 @@ const checkOut = async (req, res) => {
         .then (async selectedPromotion => {
           if (selectedPromotion.exists && selectedPromotion.data().status === 'unused' && (selectedPromotion.data().exp_date > new Date())) {
             setStatusPromoCode(selectedPromotion.data().type, promoCode)
-            net = await getNetDiscount ( 
-              net,
-              selectedPromotion.data().discount_type,
-              selectedPromotion.data().discount_number
-            )
             setLog(raw, state.USE_CODE, net)
           } else {
             setLog(raw, state.USE_CODE, net)
