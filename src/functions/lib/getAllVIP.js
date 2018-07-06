@@ -10,7 +10,7 @@ const getAllVIP = async (req, res) => {
         await vip.push({
           tel: doc.id,
           ...doc.data(),
-          age: doc.data().age | differenceDate
+          age: doc.data().age ? doc.data().age : differenceDate
         })
       })
     })
