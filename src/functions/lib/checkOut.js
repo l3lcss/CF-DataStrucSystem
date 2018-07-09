@@ -33,15 +33,20 @@ const checkOut = async (req, res) => {
         })
       }).then(() => {
         console.log('Transaction used code success')
-      }).catch(err => {
-        console.error(err)
       })
     }
     let result = {}
     if(tel) {
       result = await getNewPromoCode(tel, net)
-      await db.collection('vip').doc(tel).get().then( QuerySnapshot => {
-        console.log(QuerySnapshot.data().spending)
+      let vipRef = db.collection('vip').doc(tel)
+      await db.runTransaction(transaction => {
+        return transaction.get(vipRef)
+        .then( QuerySnapshot => {
+          let collectSpending = QuerySnapshot.data().spending + parseInt(net, 10)
+          vipRef.update({
+            spending: collectSpending
+          })
+        })
       })
     } else {
       result = {netDiscount: net}
