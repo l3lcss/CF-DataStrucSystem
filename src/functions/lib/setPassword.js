@@ -1,18 +1,26 @@
 import { db } from '../constances'
+import { authorize } from './utils/functionAdditional'
 
-const setPassword = (req, res) => {
-  let {id, pass} = req.query
-  db.collection('member').doc(id).update({ password:pass }).then((result) => {
-    console.log(result)
-    res.status(200).send({
-      message: 'set password complete',
-      data: {
-        status: 200
-      }
+const setPassword = async (req, res) => {
+  const {id, pass} = req.body
+  const Authorization = req.get('Authorization')
+
+  if (authorize(Authorization, res)) {
+    const dataResponse = await db.collection('member').doc(id).update({
+      FIRST_LOGIN: false,
+      password: pass 
     })
-  }).catch((err) => {
-    console.log('error = ', err)
-  })
+    res.status(200).send({
+      results: {
+        success: 1,
+        message: 'set password completed.',
+        data: {
+          dataResponse
+        }
+      },
+      status: 200
+    })
+  }
 }
 
 module.exports = { setPassword }

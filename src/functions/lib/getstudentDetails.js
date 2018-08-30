@@ -1,26 +1,38 @@
 import { db } from '../constances'
+import { authorize, hasDocument } from './utils/functionAdditional'
 
 const getstudentDetails = async (req, res) => {
-  let studentID = req.query.id
-    const studentList = await db.collection('member').doc(studentID).get()
-    let resStudentList = studentList.data()
-    if ( resStudentList === undefined) {
-      res.status(404).send({
-        message: 'students not found',
-        data: {
-          status: 404
-        }
-      })
+  const { id } = req.query
+  const Authorization = req.get('Authorization')
+
+  if (authorize(Authorization, res)) {
+    let prepareResults = {}
+    if (await hasDocument('member', id)){
+      const studentRef = await db.collection('member').doc(id).get()
+      const StudentDetails = studentRef.data()
+      prepareResults = {
+        results: {
+          success: 1,
+          message: 'Send Student Details completed.',
+          data: {
+            studentID: id,
+            ...StudentDetails
+          }
+        },
+        status: 200
+      }
+      res.status(200).send(prepareResults)
     } else {
-      res.status(200).send({
-        message: 'send studentDetails complete',
-        data: {
-          status: 200,
-          studentID,
-          ...resStudentList
-        }
-      })
+      prepareResults = {
+        results: {
+          success: 0,
+          message: 'students not found.'
+        },
+        status: 200
+      }
+      res.status(200).send(prepareResults)
     }
+  }
 }
 
 module.exports = { getstudentDetails }
