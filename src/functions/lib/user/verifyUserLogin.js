@@ -1,5 +1,5 @@
-import { db } from '../constances'
-import { authorize, hasDocument } from './utils/functionAdditional'
+import { db } from '../../constances'
+import { authorize, hasDocument } from '../utils/functionAdditional'
 
 const verifyUserLogin = async (req, res) => {
   const { id, pass } = req.query

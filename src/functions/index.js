@@ -1,12 +1,17 @@
 import * as functions from 'firebase-functions'
 import { app } from './constances'
 
-const { getstudentDetails } = require('./lib/getstudentDetails')
-const { setPassword } = require('./lib/setPassword')
-const { verifyUserLogin } = require('./lib/verifyUserLogin')
+const user = require('./lib/user')
+const { home } = require('./lib/home')
 
-app.get('/getstudentDetails', getstudentDetails)
-app.get('/verifyUserLogin', verifyUserLogin)
-app.post('/setPassword', setPassword)
+app.get('/', home)
+app.get('/getstudentDetails', user.getstudentDetails)
+app.get('/verifyUserLogin', user.verifyUserLogin)
+app.get('/getAllStudents', user.getAllStudents)
+
+app.post('/setPassword', user.setPassword)
+app.post('/createStudent', user.createStudent)
+
+app.delete('/removeStudent', user.removeStudent)
 
 exports.app = functions.https.onRequest(app)

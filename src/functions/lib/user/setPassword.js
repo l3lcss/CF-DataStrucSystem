@@ -1,5 +1,5 @@
-import { db } from '../constances'
-import { authorize } from './utils/functionAdditional'
+import { db } from '../../constances'
+import { authorize } from '../utils/functionAdditional'
 
 const setPassword = async (req, res) => {
   const {id, pass} = req.body
