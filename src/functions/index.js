@@ -5,7 +5,7 @@ const user = require('./lib/user')
 const { home } = require('./lib/home')
 
 app.get('/', home)
-app.get('/getstudentDetails', user.getstudentDetails)
+app.get('/getUserDetails', user.getUserDetails)
 app.get('/verifyUserLogin', user.verifyUserLogin)
 app.get('/getAllStudents', user.getAllStudents)
 
