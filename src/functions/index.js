@@ -11,6 +11,7 @@ app.get('/getAllStudents', user.getAllStudents)
 
 app.post('/setPassword', user.setPassword)
 app.post('/createStudent', user.createStudent)
+app.post('/setReservTime', user.setReservTime)
 
 app.delete('/removeStudent', user.removeStudent)
 

@@ -4,6 +4,7 @@ const { verifyUserLogin } = require('./verifyUserLogin')
 const { getAllStudents } = require('./getAllStudents')
 const { createStudent } = require('./createStudent')
 const { removeStudent } = require('./removeStudent')
+const { setReservTime } = require('./setReservTime')
 
 module.exports = {
   getUserDetails,
@@ -11,5 +12,6 @@ module.exports = {
   verifyUserLogin,
   getAllStudents,
   createStudent,
-  removeStudent
+  removeStudent,
+  setReservTime
 }

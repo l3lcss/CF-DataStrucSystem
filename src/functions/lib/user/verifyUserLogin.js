@@ -17,7 +17,6 @@ const verifyUserLogin = async (req, res) => {
             success: 1,
             message: 'Student is First Login.',
             data: {
-              id,
               ...studentDetails
             }
           },
